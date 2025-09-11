@@ -55,6 +55,8 @@ public class HypixelApiHandler {
             } catch (Exception e) {
                 // エラーはコンソールに出力
                 e.printStackTrace();
+                // プレイヤーにエラーを通知
+                sendMessageToPlayer(EnumChatFormatting.RED + "Failed to get stats for " + username + ".");
             }
         });
     }

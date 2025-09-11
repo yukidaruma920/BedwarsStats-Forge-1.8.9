@@ -61,12 +61,13 @@ public class PrestigeFormatter {
     }
 
     public static String formatPrestige(int stars) {
-        // § はJavaでは \u00A7 と書くので、色コードを変換
-        if (stars < 100) return "§7[" + stars + "✫]§f".replace('§', '\u00A7');
+        if (stars < 100) {
+            return "§7[" + stars + "✫]§f";
+        }
         
         for (PrestigePattern p : patterns) {
             if (stars >= p.min && stars <= p.max) {
-                String format = p.format.replace('§', '\u00A7');
+                String format = p.format;
                 char[] digits = String.valueOf(stars).toCharArray();
                 StringBuilder result = new StringBuilder();
                 int digitIndex = 0;
@@ -90,7 +91,7 @@ public class PrestigeFormatter {
                 return result.toString();
             }
         }
-        return "§7[" + stars + "✫]§f".replace('§', '\u00A7');
+        return "§7[" + stars + "✫]§f";
     }
     
     private static class PrestigePattern {
