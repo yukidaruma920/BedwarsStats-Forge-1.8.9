@@ -1,4 +1,4 @@
-package com.yourname.bedwarsstats;
+package com.yuki920.bedwarsstats;
 
 import net.minecraftforge.client.ClientCommandHandler;
 import net.minecraftforge.common.MinecraftForge;
