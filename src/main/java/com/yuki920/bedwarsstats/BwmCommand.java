@@ -1,16 +1,12 @@
 package com.yuki920.bedwarsstats;
 
 import net.minecraft.command.CommandBase;
-
 import net.minecraft.command.CommandException;
-
 import net.minecraft.command.ICommandSender;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.EnumChatFormatting;
 
-
 public class BwmCommand extends CommandBase {
-
 
     @Override
     public String getCommandName() {
@@ -50,7 +46,6 @@ public class BwmCommand extends CommandBase {
             sender.addChatMessage(new ChatComponentText(EnumChatFormatting.GREEN + "Hypixel API Key has been set."));
         } else {
             sender.addChatMessage(new ChatComponentText(EnumChatFormatting.RED + "Unknown subcommand. " + getCommandUsage(sender)));
-
         }
     }
 }
