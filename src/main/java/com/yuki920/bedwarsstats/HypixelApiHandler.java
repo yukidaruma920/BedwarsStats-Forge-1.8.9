@@ -32,7 +32,8 @@ public class HypixelApiHandler {
                 }
                 String uuid = mojangJson.get("id").getAsString();
 
-                String apiKey = ConfigHandler.getApiKey();
+
+                String apiKey = ConfigHandler.apiKey; // <-- ここを修正
                 if (apiKey == null || apiKey.isEmpty()) {
                     sendMessageToPlayer("§cHypixel API Key not set!");
                     return;
@@ -86,7 +87,7 @@ public class HypixelApiHandler {
         if (fkdr >= 1) return "§a";  // Green
         return "§a"; // Green
     }
-    
+  
     private static String getWlrColor(double wlr) {
         if (wlr >= 5) return "§4"; // Dark Red
         if (wlr >= 4) return "§c"; // Red
@@ -126,12 +127,12 @@ public class HypixelApiHandler {
 
         // 新しい出力形式
         return String.format("%s %s%s§r: §aWins §f%s §7| §aWLR %s%.2f§f §7| §aFinals §f%s §7| §aFKDR %s%.2f§f",
-                prestige, 
-                rankPrefix, 
-                username, 
-                formatNumber(wins), 
-                wlrColor, wlr, 
-                formatNumber(finalKills), 
+                prestige,
+                rankPrefix,
+                username,
+                formatNumber(wins),
+                wlrColor, wlr,
+                formatNumber(finalKills),
                 fkdrColor, fkdr);
     }
     
