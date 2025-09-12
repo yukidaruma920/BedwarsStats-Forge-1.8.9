@@ -13,9 +13,10 @@ public class BwmCommand extends CommandBase {
         return "bwm";
     }
 
+    // ★★★ getCommandUsageも更新 ★★★
     @Override
     public String getCommandUsage(ICommandSender sender) {
-        return "/bwm setkey <api_key>";
+        return "/bwm <setapikey <key>|stats <username>>";
     }
 
     @Override
@@ -44,9 +45,5 @@ public class BwmCommand extends CommandBase {
         }
     }
     
-    // ★★★ getCommandUsageも更新 ★★★
-    @Override
-    public String getCommandUsage(ICommandSender sender) {
-        return "/bwm <setapikey <key>|stats <username>>";
-    }
+    
 }
