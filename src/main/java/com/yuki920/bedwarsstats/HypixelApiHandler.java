@@ -32,6 +32,7 @@ public class HypixelApiHandler {
                 }
                 String uuid = mojangJson.get("id").getAsString();
 
+
                 String apiKey = ConfigHandler.apiKey; // <-- ここを修正
                 if (apiKey == null || apiKey.isEmpty()) {
                     sendMessageToPlayer("§cHypixel API Key not set!");
@@ -86,7 +87,7 @@ public class HypixelApiHandler {
         if (fkdr >= 1) return "§a";  // Green
         return "§a"; // Green
     }
-
+  
     private static String getWlrColor(double wlr) {
         if (wlr >= 5) return "§4"; // Dark Red
         if (wlr >= 4) return "§c"; // Red
@@ -107,7 +108,7 @@ public class HypixelApiHandler {
         }
         
         JsonObject bedwars = player.getAsJsonObject("stats").getAsJsonObject("Bedwars");
-
+        
         int stars = (player.has("achievements") && player.getAsJsonObject("achievements").has("bedwars_level"))
                 ? player.getAsJsonObject("achievements").get("bedwars_level").getAsInt() : 0;
         int wins = bedwars.has("wins_bedwars") ? bedwars.get("wins_bedwars").getAsInt() : 0;
@@ -117,7 +118,7 @@ public class HypixelApiHandler {
 
         double wlr = (losses == 0) ? wins : (double) wins / losses;
         double fkdr = (finalDeaths == 0) ? finalKills : (double) finalKills / finalDeaths;
-
+        
         String prestige = PrestigeFormatter.formatPrestige(stars);
 
         // ★★★ 2. Statsごとの色付けを適用 ★★★
