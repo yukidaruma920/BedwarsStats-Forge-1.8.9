@@ -1,10 +1,11 @@
 package com.yuki920.bedwarsstats;
 
+import com.yuki920.bedwarsstats.config.ConfigHandler;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import net.minecraft.client.Minecraft;
-import net.minecraft.util.ChatComponentText;
-import net.minecraft.util.EnumChatFormatting; // Formattingの代わりにこれを使う
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -161,23 +162,13 @@ public class HypixelApiHandler {
             return "§7"; // No rank
         }
 
-        String plusColor = "§c"; // デフォルトは赤
+        String plusColor = "§c";
         if (rankPlusColorStr != null) {
-            switch (rankPlusColorStr) {
-                case "RED": plusColor = "§c"; break;
-                case "GOLD": plusColor = "§6"; break;
-                case "GREEN": plusColor = "§a"; break;
-                case "YELLOW": plusColor = "§e"; break;
-                case "LIGHT_PURPLE": plusColor = "§d"; break;
-                case "WHITE": plusColor = "§f"; break;
-                case "BLUE": plusColor = "§9"; break;
-                case "DARK_GREEN": plusColor = "§2"; break;
-                case "DARK_RED": plusColor = "§4"; break;
-                case "DARK_AQUA": plusColor = "§3"; break;
-                case "DARK_PURPLE": plusColor = "§5"; break;
-                case "DARK_GRAY": plusColor = "§8"; break;
-                case "BLACK": plusColor = "§0"; break;
-                case "AQUA": plusColor = "§b"; break;
+            try {
+                plusColor = "§" + Formatting.valueOf(rankPlusColorStr).getCode();
+            } catch (IllegalArgumentException e) {
+                plusColor = "§c";
+
             }
         }
 
@@ -211,10 +202,11 @@ public class HypixelApiHandler {
     }
 
     private static void sendMessageToPlayer(String message) {
-    // Minecraftのメインスレッドでチャットメッセージを送信
-    Minecraft.getMinecraft().addScheduledTask(() -> {
-        if (Minecraft.getMinecraft().thePlayer != null) {
-            Minecraft.getMinecraft().thePlayer.addChatMessage(new ChatComponentText(message));
-        }
-    });
+        MinecraftClient client = MinecraftClient.getInstance();
+        client.execute(() -> {
+            if (client.player != null) {
+                client.player.sendMessage(Text.literal(message), false);
+            }
+        });
+    }
 }
