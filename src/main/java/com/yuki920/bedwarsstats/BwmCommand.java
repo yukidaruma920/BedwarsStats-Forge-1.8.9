@@ -30,22 +30,23 @@ public class BwmCommand extends CommandBase {
     }
 
     @Override
-    public void processCommand(ICommandSender sender, String[] args) throws CommandException {
-        if (args.length < 1) {
-            sender.addChatMessage(new ChatComponentText(EnumChatFormatting.RED + "Invalid usage. " + getCommandUsage(sender)));
-            return;
+    public void processCommand(ICommandSender sender, String[] args) {
+        if (args.length == 2 && args[0].equalsIgnoreCase("setapikey")) {
+            ConfigHandler.setApiKey(args[1]);
+            sender.addChatMessage(new ChatComponentText(EnumChatFormatting.GREEN + "API Key set successfully!"));
+        } 
+        // ★★★ statsサブコマンドを追加 ★★★
+        else if (args.length == 2 && args[0].equalsIgnoreCase("stats")) {
+            HypixelApiHandler.processPlayer(args[1]);
         }
-
-        if (args[0].equalsIgnoreCase("setkey")) {
-            if (args.length < 2) {
-                sender.addChatMessage(new ChatComponentText(EnumChatFormatting.RED + "Please provide an API key. Usage: /bwm setkey <api_key>"));
-                return;
-            }
-            String apiKey = args[1];
-            ConfigHandler.setApiKey(apiKey);
-            sender.addChatMessage(new ChatComponentText(EnumChatFormatting.GREEN + "Hypixel API Key has been set."));
-        } else {
-            sender.addChatMessage(new ChatComponentText(EnumChatFormatting.RED + "Unknown subcommand. " + getCommandUsage(sender)));
+        else {
+            sender.addChatMessage(new ChatComponentText(EnumChatFormatting.RED + "Usage: " + getCommandUsage(sender)));
         }
+    }
+    
+    // ★★★ getCommandUsageも更新 ★★★
+    @Override
+    public String getCommandUsage(ICommandSender sender) {
+        return "/bwm <setapikey <key>|stats <username>>";
     }
 }
