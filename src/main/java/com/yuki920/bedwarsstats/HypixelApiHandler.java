@@ -79,23 +79,56 @@ public class HypixelApiHandler {
 
     // ★★★ 2. Statsごとの色付け用ヘルパーメソッド ★★★
     private static String getFkdrColor(double fkdr) {
+        if (fkdr >= 20) return "§5"; // Dark Purple
+        if (fkdr >= 15) return "§d"; // Light Purple
         if (fkdr >= 10) return "§4"; // Dark Red
-        if (fkdr >= 8) return "§c"; // Red
-        if (fkdr >= 6) return "§6"; // Gold
-        if (fkdr >= 4) return "§e"; // Yellow
-        if (fkdr >= 2) return "§2";  // Dark Green
-        if (fkdr >= 1) return "§a";  // Green
-        return "§f"; // Green
+        if (fkdr >= 8)  return "§c"; // Red
+        if (fkdr >= 6)  return "§6"; // Gold
+        if (fkdr >= 4)  return "§e"; // Yellow
+        if (fkdr >= 2)  return "§2"; // Dark Green
+        if (fkdr >= 1)  return "§a"; // Green
+        if (fkdr >= 0.5) return "§f"; // White
+        return "§7"; // Light Gray（0未満〜0.49）
     }
-  
+
     private static String getWlrColor(double wlr) {
-        if (wlr >= 5) return "§4"; // Dark Red
-        if (wlr >= 4) return "§c"; // Red
-        if (wlr >= 3) return "§6"; // Gold
-        if (wlr >= 2) return "§e"; // Yellow
-        if (wlr >= 1) return "§2";  // Dark Green
-        if (wlr >= 0.5) return "§a";  // Green
-        return "§f"; // Green
+        if (wlr >= 10) return "§5"; // Dark Purple
+        if (wlr >= 8)  return "§d"; // Light Purple
+        if (wlr >= 6)  return "§4"; // Dark Red
+        if (wlr >= 5)  return "§c"; // Red
+        if (wlr >= 4)  return "§6"; // Gold
+        if (wlr >= 3)  return "§e"; // Yellow
+        if (wlr >= 2)  return "§2"; // Dark Green
+        if (wlr >= 1)  return "§a"; // Green
+        if (wlr >= 0.5) return "§f"; // White
+        return "§7"; // Light Gray（0未満〜0.49）
+    }
+
+
+    private static String getWinsColor(int wins) {
+        if (wins >= 50000) return "§5"; // Dark Purple
+        if (wins >= 25000) return "§d"; // Light Purple
+        if (wins >= 10000) return "§4"; // Dark Red
+        if (wins >= 5000) return "§c"; // Red
+        if (wins >= 2500) return "§6"; // Gold
+        if (wins >= 1000) return "§e"; // Yellow
+        if (wins >= 500) return "§2";  // Dark Green
+        if (wins >= 250) return "§a";  // Green
+        if (wins >= 50) return "§f";  // White
+        return "§7"; // Gray
+    }
+
+    private static String getFinalsColor(int finals) {
+        if (finals >= 100000) return "§5"; // Dark Purple
+        if (finals >= 50000) return "§d"; // Light Purple
+        if (finals >= 25000) return "§4"; // Dark Red
+        if (finals >= 10000) return "§c"; // Red
+        if (finals >= 5000) return "§6"; // Gold
+        if (finals >= 2500) return "§e"; // Yellow
+        if (finals >= 1000) return "§2";  // Dark Green
+        if (finals >= 500) return "§a";  // Green
+        if (finals >= 100) return "§f";  // White
+        return "§7"; // Gray
     }
 
     // ★★★ 2. formatStatsメソッドを新しい仕様に完全に更新 ★★★
@@ -122,17 +155,20 @@ public class HypixelApiHandler {
         String prestige = PrestigeFormatter.formatPrestige(stars);
 
         // ★★★ 2. Statsごとの色付けを適用 ★★★
+        String winsColor = getWinsColor(wins);
         String wlrColor = getWlrColor(wlr);
+        String finalsColor = getFinalsColor(finalKills);
         String fkdrColor = getFkdrColor(fkdr);
 
+
         // 新しい出力形式
-        return String.format("%s %s%s§r: §aWins §f%s §7| §aWLR %s%.2f§f §7| §aFinals §f%s §7| §aFKDR %s%.2f§f",
+        return String.format("%s %s%s§r: Wins %s%s§r | WLR %s%.2f§r | Finals %s%s§r | FKDR %s%.2f",
                 prestige,
                 rankPrefix,
                 username,
-                formatNumber(wins),
+                winsColor, formatNumber(wins),
                 wlrColor, wlr,
-                formatNumber(finalKills),
+                finalsColor, formatNumber(finalKills),
                 fkdrColor, fkdr);
     }
     

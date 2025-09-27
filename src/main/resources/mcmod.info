@@ -3,7 +3,7 @@
   "modid": "bedwarsstats",
   "name": "Bedwars Stats Mod",
   "description": "Give a description of your mod here, it will show in the modlist menu",
-  "version": "0.1.1",
+  "version": "0.3.0",
   "mcversion": "1.8.9",
   "url": "",
   "updateUrl": "",
