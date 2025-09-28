@@ -1,22 +1,19 @@
 buildscript {
     repositories {
         mavenCentral()
+        jcenter()
         maven {
             name = "forge"
             url = 'https://maven.minecraftforge.net/'
         }
-        maven {
-            name = "Gradle Plugins"
-            url = "https://plugins.gradle.org/m2/"
-        }
     }
     dependencies {
         classpath 'net.minecraftforge.gradle:ForgeGradle:2.1-SNAPSHOT'
-        classpath "com.gradleup.shadow:shadow-gradle-plugin:8.1.1"
+        classpath 'com.github.jengelman.gradle.plugins:shadow:2.0.4'
     }
 }
 apply plugin: 'net.minecraftforge.gradle.forge'
-apply plugin: 'com.gradleup.shadow'
+apply plugin: 'com.github.johnrengelman.shadow'
 
 
 version = "1.0"
@@ -57,7 +54,8 @@ reobf {
     }
 }
 
-tasks.build.dependsOn shadowJar
-tasks.shadowJar.finalizedBy reobfShadowJar
-tasks.reobf.finalizedBy(null)
-tasks.build.dependsOn reobfShadowJar
+// Disable the default jar task. We want the shadow jar.
+jar.enabled = false
+
+// Make the build task depend on the reobfuscated shadow jar
+build.dependsOn reobfShadowJar
