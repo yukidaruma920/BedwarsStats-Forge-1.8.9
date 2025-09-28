@@ -4,14 +4,14 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.network.FMLNetworkEvent.ClientConnectedToServerEvent;
 
 public class PlayerJoinEventHandler {
-    private boolean firstJoin = true;
+    private static boolean hasChecked = false;
 
     @SubscribeEvent
     public void onPlayerJoin(ClientConnectedToServerEvent event) {
-        // Only run this on the first time the player joins a server per session
-        if (firstJoin) {
+        // Only run this check once per game launch
+        if (!hasChecked) {
             HypixelApiHandler.checkApiKeyValidity();
-            firstJoin = false;
+            hasChecked = true;
         }
     }
 }

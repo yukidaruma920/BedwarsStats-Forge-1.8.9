@@ -1,6 +1,5 @@
 package com.yuki920.bedwarsstats;
 
-import com.yuki920.bedwarsstats.libs.moulconfig.MoulConfig;
 import net.minecraft.client.Minecraft;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.CommandException;
@@ -34,7 +33,7 @@ public class BwmCommand extends CommandBase {
     @Override
     public void processCommand(ICommandSender sender, String[] args) throws CommandException {
         if (args.length == 0) {
-            openConfigGui();
+            sender.addChatMessage(new ChatComponentText("Usage: " + getCommandUsage(sender)));
             return;
         }
 
@@ -51,30 +50,26 @@ public class BwmCommand extends CommandBase {
         }
     }
 
-    private void openConfigGui() {
-        Minecraft.getMinecraft().addScheduledTask(() ->
-            Minecraft.getMinecraft().displayGuiScreen(MoulConfig.getGui(BedwarsStats.config))
-        );
-    }
-
     private void processStatsCommand(ICommandSender sender, String[] args) throws WrongUsageException {
         if (args.length < 2) {
             throw new WrongUsageException("/bwm stats <player> [mode]");
         }
         String playerName = args[1];
-        DisplayMode mode = BedwarsStats.config.displayMode; // Default mode
+        String modeStr = ConfigHandler.displayMode; // Default mode from config
 
         if (args.length > 2) {
-            try {
-                mode = DisplayMode.valueOf(args[2].toUpperCase());
-            } catch (IllegalArgumentException e) {
-                sender.addChatMessage(new ChatComponentText(EnumChatFormatting.RED + "Invalid mode! Valid modes are: " +
-                    Arrays.stream(DisplayMode.values()).map(Enum::name).collect(Collectors.joining(", "))));
-                return;
-            }
+            modeStr = args[2].toUpperCase();
         }
 
-        HypixelApiHandler.processPlayer(playerName, mode);
+        try {
+            DisplayMode.valueOf(modeStr); // Validate mode
+        } catch (IllegalArgumentException e) {
+            sender.addChatMessage(new ChatComponentText(EnumChatFormatting.RED + "Invalid mode! Valid modes are: " +
+                Arrays.stream(DisplayMode.values()).map(Enum::name).collect(Collectors.joining(", "))));
+            return;
+        }
+
+        HypixelApiHandler.processPlayer(playerName, modeStr);
     }
 
     private void processSettingsCommand(ICommandSender sender, String[] args) throws WrongUsageException {
@@ -86,23 +81,21 @@ public class BwmCommand extends CommandBase {
 
         switch (setting) {
             case "apikey":
-                BedwarsStats.config.apiKey = value;
-                BedwarsStats.config.save();
+                ConfigHandler.setApiKey(value);
                 sender.addChatMessage(new ChatComponentText(EnumChatFormatting.GREEN + "API Key set successfully!"));
                 break;
             case "mode":
                 try {
-                    BedwarsStats.config.displayMode = DisplayMode.valueOf(value.toUpperCase());
-                    BedwarsStats.config.save();
-                    sender.addChatMessage(new ChatComponentText(EnumChatFormatting.GREEN + "Display mode set to " + value));
+                    DisplayMode.valueOf(value.toUpperCase()); // Validate mode
+                    ConfigHandler.setDisplayMode(value);
+                    sender.addChatMessage(new ChatComponentText(EnumChatFormatting.GREEN + "Display mode set to " + value.toUpperCase()));
                 } catch (IllegalArgumentException e) {
                     sender.addChatMessage(new ChatComponentText(EnumChatFormatting.RED + "Invalid mode! Valid modes are: " +
                         Arrays.stream(DisplayMode.values()).map(Enum::name).collect(Collectors.joining(", "))));
                 }
                 break;
             case "nick":
-                BedwarsStats.config.nick = value;
-                BedwarsStats.config.save();
+                ConfigHandler.setNick(value);
                 sender.addChatMessage(new ChatComponentText(EnumChatFormatting.GREEN + "Nickname set to " + value));
                 break;
             default:

@@ -6,20 +6,22 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 
-@Mod(modid = BedwarsStats.MODID, version = BedwarsStats.VERSION, name = BedwarsStats.NAME, clientSideOnly = true)
+import net.minecraftforge.fml.common.Mod.EventHandler;
+import net.minecraftforge.fml.common.event.FMLInitializationEvent;
+import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
+
+@Mod(modid = BedwarsStats.MODID, version = BedwarsStats.VERSION, name = BedwarsStats.NAME, clientSideOnly = true, guiFactory = "com.yuki920.bedwarsstats.GuiFactory")
 public class BedwarsStats {
     public static final String MODID = "bedwarsstats";
     public static final String VERSION = "0.1.0";
     public static final String NAME = "Bedwars Stats";
 
-    public static ConfigHandler config;
-
-    @Mod.EventHandler
+    @EventHandler
     public void preInit(FMLPreInitializationEvent event) {
-        config = new ConfigHandler(event.getSuggestedConfigurationFile());
+        ConfigHandler.init(event.getSuggestedConfigurationFile());
     }
 
-    @Mod.EventHandler
+    @EventHandler
     public void init(FMLInitializationEvent event) {
         // イベントハンドラとコマンドを登録
         MinecraftForge.EVENT_BUS.register(new ChatEventHandler());

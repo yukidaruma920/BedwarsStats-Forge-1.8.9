@@ -1,78 +1,55 @@
 package com.yuki920.bedwarsstats;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.yuki920.bedwarsstats.libs.moulconfig.Config;
-import com.yuki920.bedwarsstats.libs.moulconfig.MoulConfig;
-import com.yuki920.bedwarsstats.libs.moulconfig.annotations.ConfigEditorType;
-import com.yuki920.bedwarsstats.libs.moulconfig.annotations.ConfigOption;
-
+import net.minecraftforge.common.config.Configuration;
 import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
 
-public class ConfigHandler extends Config {
-    private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
-    private final File configFile;
+public class ConfigHandler {
 
-    @ConfigOption(name = "API Key", desc = "Your Hypixel API Key. Get it with /api new.")
-    @ConfigEditorType(value = "TEXT_FIELD")
-    public String apiKey = "";
+    public static Configuration config;
 
-    @ConfigOption(name = "Display Mode", desc = "The default display mode for Bedwars stats.")
-    @ConfigEditorType(value = "ENUM_DROPDOWN")
-    public DisplayMode displayMode = DisplayMode.OVERALL;
+    // Categories
+    public static final String CATEGORY_GENERAL = "general";
 
-    @ConfigOption(name = "Nickname", desc = "Your registered nickname on Hypixel.")
-    @ConfigEditorType(value = "TEXT_FIELD")
-    public String nick = "";
+    // Options
+    public static String apiKey = "";
+    public static String displayMode = "OVERALL";
+    public static String nick = "";
 
-    public ConfigHandler(File configFile) {
-        this.configFile = configFile;
-        load();
+    public static void init(File configFile) {
+        config = new Configuration(configFile);
+        syncConfig();
     }
 
-    public void load() {
-        if (configFile.exists()) {
-            try (FileReader reader = new FileReader(configFile)) {
-                ConfigData data = GSON.fromJson(reader, ConfigData.class);
-                if (data != null) {
-                    this.apiKey = data.apiKey;
-                    this.displayMode = data.displayMode;
-                    this.nick = data.nick;
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+    public static void syncConfig() {
+        // Load the configuration file
+        config.load();
+
+        // Read values from the config
+        apiKey = config.getString("apiKey", CATEGORY_GENERAL, "", "Your Hypixel API Key. Get it with /api new.");
+        displayMode = config.getString("displayMode", CATEGORY_GENERAL, "OVERALL", "The default display mode for Bedwars stats. [OVERALL, SOLO, DOUBLES, THREES, FOURS]");
+        nick = config.getString("nick", CATEGORY_GENERAL, "", "Your registered nickname on Hypixel.");
+
+        // Save the configuration file if it has changed.
+        if (config.hasChanged()) {
+            config.save();
         }
     }
 
-    @Override
-    public void save() {
-        try (FileWriter writer = new FileWriter(configFile)) {
-            GSON.toJson(new ConfigData(this), writer);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+    public static void setApiKey(String key) {
+        config.get(CATEGORY_GENERAL, "apiKey", "").set(key);
+        config.save();
+        apiKey = key;
     }
 
-    @Override
-    public String getTitle() {
-        return "Bedwars Stats " + BedwarsStats.VERSION;
+    public static void setDisplayMode(String mode) {
+        config.get(CATEGORY_GENERAL, "displayMode", "OVERALL").set(mode.toUpperCase());
+        config.save();
+        displayMode = mode.toUpperCase();
     }
 
-    // A separate class to hold the data for serialization,
-    // to avoid serializing the entire Config object.
-    private static class ConfigData {
-        public String apiKey;
-        public DisplayMode displayMode;
-        public String nick;
-
-        public ConfigData(ConfigHandler handler) {
-            this.apiKey = handler.apiKey;
-            this.displayMode = handler.displayMode;
-            this.nick = handler.nick;
-        }
+    public static void setNick(String nickname) {
+        config.get(CATEGORY_GENERAL, "nick", "").set(nickname);
+        config.save();
+        nick = nickname;
     }
 }
