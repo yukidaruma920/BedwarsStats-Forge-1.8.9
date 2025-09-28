@@ -1,6 +1,6 @@
 package com.yuki920.bedwarsstats;
 
-import io.github.moulberry.moulconfig.MoulConfig;
+import org.notenoughupdates.moulconfig.MoulConfig;
 import net.minecraft.client.Minecraft;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.CommandException;
@@ -120,7 +120,10 @@ public class BwmCommand extends CommandBase {
         if ("stats".equals(subCommand)) {
             if (args.length == 2) {
                 // Player name completion
-                return getListOfStringsMatchingLastWord(args, Minecraft.getMinecraft().theWorld.getPlayerEntityNames());
+                List<String> playerNames = Minecraft.getMinecraft().theWorld.playerEntities.stream()
+                    .map(player -> player.getName())
+                    .collect(Collectors.toList());
+                return getListOfStringsMatchingLastWord(args, playerNames);
             } else if (args.length == 3) {
                 // Mode completion
                 List<String> modes = Arrays.stream(DisplayMode.values()).map(Enum::name).map(String::toLowerCase).collect(Collectors.toList());

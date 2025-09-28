@@ -223,7 +223,10 @@ public class HypixelApiHandler {
         if (displayRank == null) return "§7"; // No rank
         String plusColor = "§c";
         if (rankPlusColorStr != null) {
-            plusColor = "§" + EnumChatFormatting.getValueByName(rankPlusColorStr).getFormattingCode();
+            EnumChatFormatting color = EnumChatFormatting.getValueByName(rankPlusColorStr);
+            if(color != null) {
+                plusColor = color.toString();
+            }
         }
         switch (displayRank) {
             case "VIP": return "§a[VIP] ";
