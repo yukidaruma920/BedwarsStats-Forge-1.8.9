@@ -2,10 +2,10 @@ package com.yuki920.bedwarsstats;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import org.notenoughupdates.moulconfig.Config;
-import org.notenoughupdates.moulconfig.MoulConfig;
-import org.notenoughupdates.moulconfig.annotations.ConfigEditorType;
-import org.notenoughupdates.moulconfig.annotations.ConfigOption;
+import com.yuki920.bedwarsstats.libs.moulconfig.Config;
+import com.yuki920.bedwarsstats.libs.moulconfig.MoulConfig;
+import com.yuki920.bedwarsstats.libs.moulconfig.annotations.ConfigEditorType;
+import com.yuki920.bedwarsstats.libs.moulconfig.annotations.ConfigOption;
 
 import java.io.File;
 import java.io.FileReader;

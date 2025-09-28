@@ -1,6 +1,6 @@
 package com.yuki920.bedwarsstats;
 
-import org.notenoughupdates.moulconfig.MoulConfig;
+import com.yuki920.bedwarsstats.libs.moulconfig.MoulConfig;
 import net.minecraft.client.Minecraft;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.CommandException;
