@@ -12,15 +12,18 @@ public class BedwarsStats {
     public static final String VERSION = "0.1.0";
     public static final String NAME = "Bedwars Stats";
 
+    public static ConfigHandler config;
+
     @Mod.EventHandler
     public void preInit(FMLPreInitializationEvent event) {
-        ConfigHandler.init(event.getSuggestedConfigurationFile());
+        config = new ConfigHandler(event.getSuggestedConfigurationFile());
     }
 
     @Mod.EventHandler
     public void init(FMLInitializationEvent event) {
         // イベントハンドラとコマンドを登録
         MinecraftForge.EVENT_BUS.register(new ChatEventHandler());
+        MinecraftForge.EVENT_BUS.register(new PlayerJoinEventHandler());
         ClientCommandHandler.instance.registerCommand(new BwmCommand());
     }
 }
