@@ -1,13 +1,15 @@
 package com.yuki920.bedwarsstats;
 
+import net.minecraft.client.Minecraft; // ★★★ この行を追加 ★★★
+import net.minecraft.client.network.NetworkPlayerInfo; // ★★★ この行を追加 ★★★
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
-import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.EnumChatFormatting;
 
+import java.util.ArrayList; // 念の為追加（ストリームを使わない場合）
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -120,8 +122,15 @@ public class BwmCommand extends CommandBase {
                 return getListOfStringsMatchingLastWord(args, "apikey", "mode", "nick");
             }
             if (args[0].equalsIgnoreCase("stats")) {
-                // Suggest online players
-                return getListOfStringsMatchingLastWord(args, sender.getEntityWorld().getPlayerEntityNames());
+                // ▼▼▼▼▼ ここを修正 ▼▼▼▼▼
+                // サーバーにいるプレイヤー名を取得する
+                if (Minecraft.getMinecraft().getNetHandler() != null) {
+                    List<String> playerNames = Minecraft.getMinecraft().getNetHandler().getPlayerInfoMap().stream()
+                            .map(networkPlayerInfo -> networkPlayerInfo.getGameProfile().getName())
+                            .collect(Collectors.toList());
+                    return getListOfStringsMatchingLastWord(args, playerNames);
+                }
+                // ▲▲▲▲▲ ここまで修正 ▲▲▲▲▲
             }
         }
         if (args.length == 3) {
