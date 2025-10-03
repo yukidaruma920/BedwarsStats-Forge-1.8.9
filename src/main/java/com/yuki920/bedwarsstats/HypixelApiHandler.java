@@ -14,11 +14,27 @@ import java.util.concurrent.CompletableFuture;
 
 public class HypixelApiHandler {
     private static final Gson GSON = new Gson();
-    private static final String MOJANG_API_URL = "https://api.mojang.com/users/profiles/minecraft/";
     private static final String HYPIXEL_API_URL = "https://api.hypixel.net/player?uuid=";
     private static final String KEY_CHECK_URL = "https://api.hypixel.net/key?key=";
 
-    // Overloaded method for /who command, which uses the default mode from config
+    public static void checkApiKeyValidity() {
+        if (ConfigHandler.apiKey == null || ConfigHandler.apiKey.isEmpty()) {
+            return;
+        }
+        CompletableFuture.runAsync(() -> {
+            try {
+                URL url = new URL(KEY_CHECK_URL + ConfigHandler.apiKey);
+                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                connection.setRequestMethod("GET");
+                if (connection.getResponseCode() != 200) {
+                     sendInvalidApiKeyMessage();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
+    }
+
     public static void processPlayer(String username) {
         processPlayer(username, ConfigHandler.displayMode);
     }
@@ -31,21 +47,20 @@ public class HypixelApiHandler {
                     username = Minecraft.getMinecraft().thePlayer.getName();
                 }
 
-                String uuid = getUuid(username);
-                if (uuid == null) {
-                    sendMessageToPlayer(EnumChatFormatting.YELLOW + username + EnumChatFormatting.RESET + " is nicked or does not exist.");
-                    return;
-                }
+                String mojangUrl = "https://api.mojang.com/users/profiles/minecraft/" + username;
+                String mojangResponse = sendHttpRequest(mojangUrl, null);
+                if (mojangResponse == null) { return; }
+                JsonObject mojangJson = GSON.fromJson(mojangResponse, JsonObject.class);
+                if (mojangJson == null || !mojangJson.has("id")) { return; }
+                String uuid = mojangJson.get("id").getAsString();
 
                 if (ConfigHandler.apiKey.isEmpty()) {
-                    sendMessageToPlayer(EnumChatFormatting.RED + "Hypixel API Key not set! Use /bwm settings apikey <key> or the Mod Options menu.");
+                    sendMessageToPlayer("§cHypixel API Key not set! Use /bwm settings apikey <key> or the mod options menu.");
                     return;
                 }
-
                 String hypixelUrl = HYPIXEL_API_URL + uuid;
                 String hypixelResponse = sendHttpRequest(hypixelUrl, ConfigHandler.apiKey);
                 if (hypixelResponse == null) return;
-
                 JsonObject hypixelJson = GSON.fromJson(hypixelResponse, JsonObject.class);
 
                 if (!hypixelJson.get("success").getAsBoolean()) {
@@ -55,98 +70,26 @@ public class HypixelApiHandler {
                     return;
                 }
 
-                if (hypixelJson.get("player").isJsonNull()) {
-                    sendMessageToPlayer(EnumChatFormatting.YELLOW + username + EnumChatFormatting.RESET + " has never joined Hypixel.");
-                    return;
-                }
-
+                if (hypixelJson.get("player").isJsonNull()) { return; }
                 JsonObject player = hypixelJson.getAsJsonObject("player");
+
                 String formattedMessage = formatStats(player, modeStr);
-                sendMessageToPlayer(formattedMessage);
-
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        });
-    }
-
-    public static void checkApiKeyValidity() {
-        if (ConfigHandler.apiKey == null || ConfigHandler.apiKey.isEmpty()) {
-            return; // Don't check if no key is set
-        }
-        CompletableFuture.runAsync(() -> {
-            try {
-                URL url = new URL(KEY_CHECK_URL + ConfigHandler.apiKey);
-                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-                connection.setRequestMethod("GET");
-                if (connection.getResponseCode() != 200) {
-                     sendInvalidApiKeyMessage();
-                } else {
-                     // Optionally, confirm validity
-                     // sendMessageToPlayer(EnumChatFormatting.GREEN + "Hypixel API Key is valid.");
+                if (formattedMessage != null) {
+                    sendMessageToPlayer(formattedMessage);
                 }
             } catch (Exception e) {
-                e.printStackTrace();
+                 e.printStackTrace();
             }
         });
     }
 
-    private static String getUuid(String username) throws Exception {
-        String url = MOJANG_API_URL + username;
-        String response = sendHttpRequest(url, null);
-        if (response == null) return null;
-        JsonObject json = GSON.fromJson(response, JsonObject.class);
-        return json.has("id") ? json.get("id").getAsString() : null;
+    private static void sendInvalidApiKeyMessage() {
+        sendMessageToPlayer(EnumChatFormatting.RED + "Your Hypixel API key is invalid!");
+        sendMessageToPlayer(EnumChatFormatting.YELLOW + "Please set a new one with /bwm setapikey <key> or in the mod options.");
     }
 
-    private static String formatStats(JsonObject player, String modeStr) {
-        String username = player.get("displayname").getAsString();
-        String rankPrefix = getRankPrefix(player);
-
-        if (!player.has("stats") || player.get("stats").isJsonNull() || !player.getAsJsonObject("stats").has("Bedwars")) {
-            return rankPrefix + username + EnumChatFormatting.GRAY + ": No Bedwars stats found.";
-        }
-
-        JsonObject bedwars = player.getAsJsonObject("stats").getAsJsonObject("Bedwars");
-        String modePrefix = getModePrefix(modeStr);
-
-        int stars = player.has("achievements") && player.getAsJsonObject("achievements").has("bedwars_level")
-                ? player.getAsJsonObject("achievements").get("bedwars_level").getAsInt() : 0;
-        int wins = getStat(bedwars, modePrefix + "wins_bedwars");
-        int losses = getStat(bedwars, modePrefix + "losses_bedwars");
-        int finalKills = getStat(bedwars, modePrefix + "final_kills_bedwars");
-        int finalDeaths = getStat(bedwars, modePrefix + "final_deaths_bedwars");
-
-        double wlr = (losses == 0) ? wins : (double) wins / losses;
-        double fkdr = (finalDeaths == 0) ? finalKills : (double) finalKills / finalDeaths;
-
-        String prestige = PrestigeFormatter.formatPrestige(stars);
-        String winsColor = getWinsColor(wins);
-        String wlrColor = getWlrColor(wlr);
-        String finalsColor = getFinalsColor(finalKills);
-        String fkdrColor = getFkdrColor(fkdr);
-
-        return String.format("%s %s%s§r: Wins %s%s§r | WLR %s%.2f§r | Finals %s%s§r | FKDR %s%.2f",
-                prestige, rankPrefix, username,
-                winsColor, String.format("%,d", wins),
-                wlrColor, wlr,
-                finalsColor, String.format("%,d", finalKills),
-                fkdrColor, fkdr);
-    }
-
-    private static int getStat(JsonObject bedwars, String key) {
-        return bedwars.has(key) ? bedwars.get(key).getAsInt() : 0;
-    }
-
-    private static String getModePrefix(String modeStr) {
-        DisplayMode mode = DisplayMode.valueOf(modeStr.toUpperCase());
-        switch (mode) {
-            case SOLO: return "eight_one_";
-            case DOUBLES: return "eight_two_";
-            case THREES: return "four_three_";
-            case FOURS: return "four_four_";
-            default: return ""; // Overall
-        }
+    private static String formatNumber(int number) {
+        return String.format("%,d", number);
     }
 
     private static String getFkdrColor(double fkdr) {
@@ -177,6 +120,58 @@ public class HypixelApiHandler {
         return "§7";
     }
 
+    private static String getModePrefix(String modeStr) {
+        DisplayMode mode = DisplayMode.valueOf(modeStr.toUpperCase());
+        switch (mode) {
+            case SOLO: return "eight_one_";
+            case DOUBLES: return "eight_two_";
+            case THREES: return "four_three_";
+            case FOURS: return "four_four_";
+            default: return ""; // OVERALL
+        }
+    }
+
+    private static int getStat(JsonObject bedwars, String key) {
+        return bedwars.has(key) ? bedwars.get(key).getAsInt() : 0;
+    }
+
+    private static String formatStats(JsonObject player, String modeStr) {
+        String username = player.get("displayname").getAsString();
+        String rankPrefix = getRankPrefix(player);
+
+        if (!player.has("stats") || player.get("stats").isJsonNull() || !player.getAsJsonObject("stats").has("Bedwars")) {
+             return rankPrefix + username + "§7: No Bedwars stats found.";
+        }
+
+        JsonObject bedwars = player.getAsJsonObject("stats").getAsJsonObject("Bedwars");
+        String modePrefix = getModePrefix(modeStr);
+
+        int stars = (player.has("achievements") && player.getAsJsonObject("achievements").has("bedwars_level"))
+                ? player.getAsJsonObject("achievements").get("bedwars_level").getAsInt() : 0;
+        int wins = getStat(bedwars, modePrefix + "wins_bedwars");
+        int losses = getStat(bedwars, modePrefix + "losses_bedwars");
+        int finalKills = getStat(bedwars, modePrefix + "final_kills_bedwars");
+        int finalDeaths = getStat(bedwars, modePrefix + "final_deaths_bedwars");
+
+        double wlr = (losses == 0) ? wins : (double) wins / losses;
+        double fkdr = (finalDeaths == 0) ? finalKills : (double) finalKills / finalDeaths;
+
+        String prestige = PrestigeFormatter.formatPrestige(stars);
+        String winsColor = getWinsColor(wins);
+        String wlrColor = getWlrColor(wlr);
+        String finalsColor = getFinalsColor(finalKills);
+        String fkdrColor = getFkdrColor(fkdr);
+
+        return String.format("%s %s%s§r: Wins %s%s§r | WLR %s%.2f§r | Finals %s%s§r | FKDR %s%.2f",
+                prestige,
+                rankPrefix,
+                username,
+                winsColor, formatNumber(wins),
+                wlrColor, wlr,
+                finalsColor, formatNumber(finalKills),
+                fkdrColor, fkdr);
+    }
+
     private static String getRankPrefix(JsonObject player) {
         String rank = player.has("rank") && !player.get("rank").getAsString().equals("NORMAL") ? player.get("rank").getAsString() : null;
         String monthlyPackageRank = player.has("monthlyPackageRank") && !player.get("monthlyPackageRank").getAsString().equals("NONE") ? player.get("monthlyPackageRank").getAsString() : null;
@@ -184,12 +179,14 @@ public class HypixelApiHandler {
         String rankPlusColorStr = player.has("rankPlusColor") ? player.get("rankPlusColor").getAsString() : null;
 
         if (rank != null) {
-            if (rank.equals("YOUTUBER")) return "§c[§fYOUTUBE§c] ";
-            if (rank.equals("STAFF")) return "§c[§6STAFF§c] ";
+            switch (rank) {
+                case "YOUTUBER": return "§c[§fYOUTUBE§c] ";
+                case "STAFF": return "§c[§6STAFF§c] ";
+            }
         }
 
         String displayRank = monthlyPackageRank != null ? monthlyPackageRank : newPackageRank;
-        if (displayRank == null) return "§7";
+        if (displayRank == null) { return "§7"; }
 
         String plusColor = "§c";
         if (rankPlusColorStr != null) {
@@ -208,24 +205,23 @@ public class HypixelApiHandler {
     }
 
     private static String sendHttpRequest(String urlString, String apiKey) throws Exception {
-        HttpURLConnection connection = (HttpURLConnection) new URL(urlString).openConnection();
+        URL url = new URL(urlString);
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         connection.setRequestMethod("GET");
-        if (apiKey != null) connection.setRequestProperty("API-Key", apiKey);
-
+        if (apiKey != null) {
+            connection.setRequestProperty("API-Key", apiKey);
+        }
         if (connection.getResponseCode() == 200) {
             try (BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()))) {
                 StringBuilder content = new StringBuilder();
                 String inputLine;
-                while ((inputLine = in.readLine()) != null) content.append(inputLine);
+                while ((inputLine = in.readLine()) != null) {
+                    content.append(inputLine);
+                }
                 return content.toString();
             }
         }
         return null;
-    }
-
-    private static void sendInvalidApiKeyMessage() {
-        sendMessageToPlayer(EnumChatFormatting.RED + "Your Hypixel API key is invalid!");
-        sendMessageToPlayer(EnumChatFormatting.YELLOW + "Please get a new one with /api new");
     }
 
     private static void sendMessageToPlayer(String message) {

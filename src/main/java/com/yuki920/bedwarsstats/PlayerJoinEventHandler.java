@@ -8,7 +8,7 @@ public class PlayerJoinEventHandler {
 
     @SubscribeEvent
     public void onPlayerJoin(ClientConnectedToServerEvent event) {
-        // Only run this check once per game launch
+        // Only run this check once per game launch to avoid spamming the API
         if (!hasChecked) {
             HypixelApiHandler.checkApiKeyValidity();
             hasChecked = true;

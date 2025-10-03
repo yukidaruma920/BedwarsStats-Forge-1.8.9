@@ -33,8 +33,7 @@ public class BwmCommand extends CommandBase {
     @Override
     public void processCommand(ICommandSender sender, String[] args) throws CommandException {
         if (args.length == 0) {
-            sender.addChatMessage(new ChatComponentText("Usage: " + getCommandUsage(sender)));
-            return;
+            throw new WrongUsageException(getCommandUsage(sender));
         }
 
         String subCommand = args[0].toLowerCase();
