@@ -141,42 +141,53 @@ public class HypixelApiHandler {
     }
 
     private static String getRankPrefix(JsonObject player) {
+        // ランクに関連する情報を取得
         String rank = player.has("rank") && !player.get("rank").getAsString().equals("NORMAL") ? player.get("rank").getAsString() : null;
         String monthlyPackageRank = player.has("monthlyPackageRank") && !player.get("monthlyPackageRank").getAsString().equals("NONE") ? player.get("monthlyPackageRank").getAsString() : null;
         String newPackageRank = player.has("newPackageRank") && !player.get("newPackageRank").getAsString().equals("NONE") ? player.get("newPackageRank").getAsString() : null;
-
-        if (rank != null && rank.equals("YOUTUBER")) return EnumChatFormatting.RED + "[" + EnumChatFormatting.WHITE + "YOUTUBE" + EnumChatFormatting.RED + "] ";
-
+    
+        // Youtuberランクを最優先で処理
+        if (rank != null && rank.equals("YOUTUBER")) {
+            return EnumChatFormatting.RED + "[" + EnumChatFormatting.WHITE + "YOUTUBE" + EnumChatFormatting.RED + "] ";
+        }
+    
+        // 表示するランクを決定 (MVP++, MVP+ など)
         String displayRank = monthlyPackageRank != null && !monthlyPackageRank.equals("NONE") ? monthlyPackageRank : newPackageRank;
-        if (displayRank == null) return EnumChatFormatting.GRAY.toString();
-        EnumChatFormatting plusColor = EnumChatFormatting.RED; // デフォルトは赤
-        
+        if (displayRank == null) {
+            return EnumChatFormatting.GRAY.toString(); // ランクなし
+        }
+    
+        // --- ここが「+」の色を正しく処理する部分です ---
+        // plusColor変数を一度だけ宣言します
+        EnumChatFormatting plusColor = EnumChatFormatting.RED; // デフォルトは赤色
         if (player.has("rankPlusColor")) {
-            String rankPlusColorStr = player.get("rankPlusColor").getAsString();
+            String colorName = player.get("rankPlusColor").getAsString();
             try {
-                // 文字列の名前から直接EnumChatFormattingの定数を取得します
-                plusColor = EnumChatFormatting.valueOf(rankPlusColorStr);
+                // APIから返ってきた色の名前 ("LIGHT_PURPLE"など) を EnumChatFormatting に変換
+                plusColor = EnumChatFormatting.valueOf(colorName);
             } catch (IllegalArgumentException e) {
-                // 万が一、APIから未知の色の名前が返ってきた場合でも、デフォルトの赤色を使うことでエラーを防ぎます
+                // もし未知の色が来てもエラーにならないように、デフォルトの赤を使う
                 plusColor = EnumChatFormatting.RED;
-                e.printStackTrace();
             }
         }
-
+        // -----------------------------------------
+    
+        // ランクに応じて最終的な文字列を生成
         switch (displayRank) {
-            case "VIP": return EnumChatFormatting.GREEN + "[VIP] ";
-            case "VIP_PLUS": return EnumChatFormatting.GREEN + "[VIP" + EnumChatFormatting.GOLD + "+" + EnumChatFormatting.GREEN + "] ";
-            case "MVP": return EnumChatFormatting.AQUA + "[MVP] ";
+            case "VIP":
+                return EnumChatFormatting.GREEN + "[VIP] ";
+            case "VIP_PLUS":
+                return EnumChatFormatting.GREEN + "[VIP" + EnumChatFormatting.GOLD + "+" + EnumChatFormatting.GREEN + "] ";
+            case "MVP":
+                return EnumChatFormatting.AQUA + "[MVP] ";
             case "MVP_PLUS":
-                String plusColor = player.has("rankPlusColor") ? "§" + player.get("rankPlusColor").getAsString().toLowerCase().charAt(0) : EnumChatFormatting.RED.toString();
                 return EnumChatFormatting.AQUA + "[MVP" + plusColor + "+" + EnumChatFormatting.AQUA + "] ";
-            case "SUPERSTAR":
-                 String plusColorSuperstar = player.has("rankPlusColor") ? "§" + player.get("rankPlusColor").getAsString().toLowerCase().charAt(0) : EnumChatFormatting.RED.toString();
-                return EnumChatFormatting.GOLD + "[MVP" + plusColorSuperstar + "++" + EnumChatFormatting.GOLD + "] ";
-            default: return EnumChatFormatting.GRAY.toString();
+            case "SUPERSTAR": // MVP++ のことです
+                return EnumChatFormatting.GOLD + "[MVP" + plusColor + "++" + EnumChatFormatting.GOLD + "] ";
+            default:
+                return EnumChatFormatting.GRAY.toString(); // その他の場合は灰色
         }
     }
-
     // ★★★ 2. Statsごとの色付け用ヘルパーメソッド ★★★
     private static String getFkdrColor(double fkdr) {
         if (fkdr >= 20) return EnumChatFormatting.DARK_PURPLE.toString();
