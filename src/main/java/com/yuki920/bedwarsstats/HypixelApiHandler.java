@@ -149,6 +149,19 @@ public class HypixelApiHandler {
 
         String displayRank = monthlyPackageRank != null && !monthlyPackageRank.equals("NONE") ? monthlyPackageRank : newPackageRank;
         if (displayRank == null) return EnumChatFormatting.GRAY.toString();
+        EnumChatFormatting plusColor = EnumChatFormatting.RED; // デフォルトは赤
+        
+        if (player.has("rankPlusColor")) {
+            String rankPlusColorStr = player.get("rankPlusColor").getAsString();
+            try {
+                // 文字列の名前から直接EnumChatFormattingの定数を取得します
+                plusColor = EnumChatFormatting.valueOf(rankPlusColorStr);
+            } catch (IllegalArgumentException e) {
+                // 万が一、APIから未知の色の名前が返ってきた場合でも、デフォルトの赤色を使うことでエラーを防ぎます
+                plusColor = EnumChatFormatting.RED;
+                e.printStackTrace();
+            }
+        }
 
         switch (displayRank) {
             case "VIP": return EnumChatFormatting.GREEN + "[VIP] ";
@@ -164,41 +177,59 @@ public class HypixelApiHandler {
         }
     }
 
+    // ★★★ 2. Statsごとの色付け用ヘルパーメソッド ★★★
     private static String getFkdrColor(double fkdr) {
+        if (fkdr >= 20) return EnumChatFormatting.DARK_PURPLE.toString();
+        if (fkdr >= 15) return EnumChatFormatting.LIGHT_PURPLE.toString();
         if (fkdr >= 10) return EnumChatFormatting.DARK_RED.toString();
-        if (fkdr >= 5) return EnumChatFormatting.RED.toString();
-        if (fkdr >= 3) return EnumChatFormatting.GOLD.toString();
-        if (fkdr >= 2) return EnumChatFormatting.YELLOW.toString();
-        if (fkdr >= 1) return EnumChatFormatting.GREEN.toString();
+        if (fkdr >= 8)  return EnumChatFormatting.RED.toString();
+        if (fkdr >= 6)  return EnumChatFormatting.GOLD.toString();
+        if (fkdr >= 4)  return EnumChatFormatting.YELLOW.toString();
+        if (fkdr >= 2)  return EnumChatFormatting.DARK_GREEN.toString();
+        if (fkdr >= 1)  return EnumChatFormatting.GREEN.toString();
+        if (fkdr >= 0.5) return EnumChatFormatting.WHITE.toString();
         return EnumChatFormatting.GRAY.toString();
     }
 
     private static String getWlrColor(double wlr) {
-        if (wlr >= 5) return EnumChatFormatting.DARK_RED.toString();
-        if (wlr >= 3) return EnumChatFormatting.RED.toString();
-        if (wlr >= 2) return EnumChatFormatting.GOLD.toString();
-        if (wlr >= 1) return EnumChatFormatting.YELLOW.toString();
-        if (wlr >= 0.5) return EnumChatFormatting.GREEN.toString();
+        if (wlr >= 10) return EnumChatFormatting.DARK_PURPLE.toString();
+        if (wlr >= 8)  return EnumChatFormatting.LIGHT_PURPLE.toString();
+        if (wlr >= 6)  return EnumChatFormatting.DARK_RED.toString();
+        if (wlr >= 5)  return EnumChatFormatting.RED.toString();
+        if (wlr >= 4)  return EnumChatFormatting.GOLD.toString();
+        if (wlr >= 3)  return EnumChatFormatting.YELLOW.toString();
+        if (wlr >= 2)  return EnumChatFormatting.DARK_GREEN.toString();
+        if (wlr >= 1)  return EnumChatFormatting.GREEN.toString();
+        if (wlr >= 0.5) return EnumChatFormatting.WHITE.toString();
         return EnumChatFormatting.GRAY.toString();
     }
 
     private static String getWinsColor(int wins) {
+        if (wins >= 50000) return EnumChatFormatting.DARK_PURPLE.toString();
+        if (wins >= 25000) return EnumChatFormatting.LIGHT_PURPLE.toString();
         if (wins >= 10000) return EnumChatFormatting.DARK_RED.toString();
         if (wins >= 5000) return EnumChatFormatting.RED.toString();
-        if (wins >= 1000) return EnumChatFormatting.GOLD.toString();
-        if (wins >= 500) return EnumChatFormatting.YELLOW.toString();
-        if (wins >= 100) return EnumChatFormatting.GREEN.toString();
+        if (wins >= 2500) return EnumChatFormatting.GOLD.toString();
+        if (wins >= 1000) return EnumChatFormatting.YELLOW.toString();
+        if (wins >= 500) return EnumChatFormatting.DARK_GREEN.toString();
+        if (wins >= 250) return EnumChatFormatting.GREEN.toString();
+        if (wins >= 50) return EnumChatFormatting.WHITE.toString();
         return EnumChatFormatting.GRAY.toString();
     }
 
     private static String getFinalsColor(int finals) {
+        if (finals >= 100000) return EnumChatFormatting.DARK_PURPLE.toString();
+        if (finals >= 50000) return EnumChatFormatting.LIGHT_PURPLE.toString();
         if (finals >= 25000) return EnumChatFormatting.DARK_RED.toString();
         if (finals >= 10000) return EnumChatFormatting.RED.toString();
         if (finals >= 5000) return EnumChatFormatting.GOLD.toString();
         if (finals >= 2500) return EnumChatFormatting.YELLOW.toString();
-        if (finals >= 1000) return EnumChatFormatting.GREEN.toString();
+        if (finals >= 1000) return EnumChatFormatting.DARK_GREEN.toString();
+        if (finals >= 500) return EnumChatFormatting.GREEN.toString();
+        if (finals >= 100) return EnumChatFormatting.WHITE.toString();
         return EnumChatFormatting.GRAY.toString();
     }
+
 
     private static int getInt(JsonObject obj, String memberName) {
         return obj.has(memberName) ? obj.get(memberName).getAsInt() : 0;
